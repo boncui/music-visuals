@@ -1,0 +1,4 @@
+backend/.github
+backend/dist
+backend/node_modules
+backend/.env

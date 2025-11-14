@@ -1,0 +1,56 @@
+# Render.com deployment configuration
+services:
+  - type: web
+    name: music-visuals-backend
+    env: node
+    plan: starter
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGO_URI
+        fromService:
+          type: database
+          name: music-visuals-mongodb
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: music-visuals-redis
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: CORS_ORIGIN
+        value: https://your-frontend-domain.com
+      - key: PYTHON_SERVICE_URL
+        fromService:
+          type: web
+          name: music-visuals-audio-service
+          property: host
+
+  - type: web
+    name: music-visuals-audio-service
+    env: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    envVars:
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: music-visuals-redis
+          property: connectionString
+      - key: LOG_LEVEL
+        value: info
+
+databases:
+  - name: music-visuals-mongodb
+    plan: starter
+
+  - name: music-visuals-redis
+    plan: starter
